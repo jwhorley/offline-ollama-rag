@@ -5,30 +5,22 @@
 
 This is a fully local Retrieval-Augmented Generation (RAG) system using:
 
-- Ollama (`llama3.1:latest` and `nomic-embed-text`) https://github.com/ollama/ollama
+- Ollama (`phi4-mini` and `nomic-embed-text`) https://github.com/ollama/ollama
 - ChromaDB for vector storage https://github.com/chroma-core/chroma
 - PyMuPDF (`fitz`) for PDF parsing
 - A terminal-based chat interface
 
 ## 🔧 Setup
 
-> --- NOTE: While working in our lab - both steps 1 and 2 below have alredy been done for you. ---
-> --- You should start with setup step #3 while running this in the UTCS Lab.
-
 ### 1. Install Dependencies
 
-Use the following in your Conda environment:
+Setup a virtual .env for the project: 
 
-```bash
-pip install pymupdf chromadb tqdm termcolor langchain scikit-learn
+```
+python3 -m venv .venv && source .venv/bin/activate
 ```
 
-> Important Note: w/in the classroom lab environment during camp, this has already been done for you.
-> Don't install them to your local user as you'll run into permissions issues w/in the lab setup. 
-> To access this cona environment run the `source /lusr ___________` command provided to you in class .
-
-> If you're not in lab, and trying this on your own, you will need the dependencies listed above. Please refer
-> the the `requirements.txt` file for the full list.
+> Please refer the the `requirements.txt` file for the full list.
 ```bash
 pip install -r requirements.txt
 ```
@@ -51,7 +43,7 @@ Download from https://ollama.com/download and install.
 
 ```bash
 ollama pull nomic-embed-text
-ollama pull llama3.1:latest
+ollama pull phi4-mini
 ```
 
 You can check all the model files you have downloaded locall via ollama using: 
@@ -61,6 +53,10 @@ ollama list
 Removing a model file is as easy as: 
 ```bash
 ollama rm [model_name]
+```
+You can view the Ollama server on your machine once it's installed and launched by using
+```
+ollama serve
 ```
 
 ## 📂 Project Structure
