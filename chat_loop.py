@@ -37,13 +37,13 @@ def chat_loop():
             docs, embs, metas = result
 
             if not docs:
-                print(colored("🫥 No relevant documents found. Try rephrasing your question.\n", "yellow"))
+                print(colored("No relevant documents found. Try rephrasing your question.\n", "yellow"))
                 continue
 
             top_results = rerank_results(query_embedding, docs, embs, metas)
 
             if not top_results:
-                print(colored("🫥 No relevant documents found. Try rephrasing your question.\n", "yellow"))
+                print(colored("No relevant documents found. Try rephrasing your question.\n", "yellow"))
                 continue
 
             doc, meta, score, warn = top_results[0]

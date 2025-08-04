@@ -29,7 +29,7 @@ def query_llm(prompt, context):
 
     try:
         result = subprocess.run(
-            ["ollama", "run", "llama3.1:latest"],
+            ["ollama", "run", "phi4-mini:latest"],
             input=full_prompt,
             text=True,
             capture_output=True,
