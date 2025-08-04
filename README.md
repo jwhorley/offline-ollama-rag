@@ -1,6 +1,6 @@
 # Local RAG with Ollama
 
-![Ollama title slide](slide_images/a.png)
+![title slide](offline-ollama-rag/images/AAIASummerAcademy- RAGLab.png)
 
 
 This is a fully local Retrieval-Augmented Generation (RAG) system using:
