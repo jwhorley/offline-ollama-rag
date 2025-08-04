@@ -7,17 +7,14 @@ import requests
 
 def embed_text(text: str) -> list:
     """
-    Embeds text using the 'nomic-embed-text' model via Ollama.
-    
-    Prerequisites:
-    - Ollama must be installed and running locally
-    - The 'nomic-embed-text' model must be downloaded
+    Embeds text using the 'nomic-embed-text' model via Ollama's HTTP API.
+    Requires Ollama to be running locally.
 
     Args:
         text (str): Text to embed
 
     Returns:
-        List[float]: 768-dimensional embedding vector
+        List[float]: Embedding vector
     """
     try:
         response = requests.post(
@@ -31,13 +28,10 @@ def embed_text(text: str) -> list:
         return response.json()["embedding"]
 
     except requests.RequestException as e:
-        print("❌ Error communicating with Ollama. Is Ollama running?")
-        print("   Try running: ollama serve")
-        print(f"   Error details: {e}")
+        print("❌ Error communicating with Ollama embedding server.")
+        print(e)
         return []
 
     except KeyError:
-        print("❌ Unexpected response format from Ollama.")
-        print("   Make sure 'nomic-embed-text' model is installed:")
-        print("   ollama pull nomic-embed-text")
+        print("❌ Unexpected response format from embedding server.")
         return []

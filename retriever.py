@@ -18,27 +18,21 @@ collection = client.get_or_create_collection(
 
 # Check embedding dimension for debugging
 def check_embedding_dimension():
-    """
-    Checks the embedding dimension of stored vectors for compatibility.
-    Helps debug embedding model mismatches.
-    """
     try:
         peek = collection.peek()
         embs = peek.get("embeddings")
         if embs is not None and isinstance(embs, list) and len(embs) > 0:
             dim = len(peek["embeddings"][0])
             if dim == 768:
-                print("✅ Collection embedding dimension: 768 (compatible with nomic-embed-text)\n")
+                print("Collection expects embedding dimension: 768\n")
             elif dim == 384:
-                print("⚠️ Collection embedding dimension: 384 (may need different model)\n")
+                print("⚠️ Collection expects embedding dimension: 384\n")
             else:
-                print(f"⚠️ Unexpected embedding dimension: {dim}")
-                print("   Consider deleting 'chroma_db/' folder to rebuild with correct dimensions\n")
+                print(f"⚠️ Unexpected embedding dimension: {dim}\n")
         else:
-            print("📝 Empty collection - ready for new documents\n")
+            print("⚠️ No embeddings found in collection.\n")
     except Exception as e:
-        print(f"⚠️ Error checking embedding dimension: {e}")
-        print("   This is normal for a new installation\n")
+        print(f"Error checking embedding dimension: {e}")
 
 check_embedding_dimension()
 

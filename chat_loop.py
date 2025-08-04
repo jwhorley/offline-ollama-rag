@@ -17,14 +17,14 @@ def simulate_loading(message="🤖 Generating response from LLM...", seconds=5):
     print()
 
 def chat_loop():
-    print(colored("📚 Local RAG Assistant powered by Ollama", "green"))
+    print(colored("📚 Ollama Offline RAG Assistant", "green"))
     print(colored("Type your question below. Type 'exit' to quit.\n", "cyan"))
 
     while True:
         try:
             query = input("> ").strip()
             if query.lower() in ("exit", "quit", "bye"):
-                print(colored("👋 Goodbye! Thanks for using the RAG assistant.\n", "cyan"))
+                print(colored("👋 Goodbye! Exiting RAG assistant.\n", "cyan"))
                 break
 
             query_embedding = embed_text(query)
@@ -62,7 +62,7 @@ def chat_loop():
             print()
 
         except KeyboardInterrupt:
-            print(colored("\n👋 Interrupted. Thanks for using the RAG assistant.\n", "cyan"))
+            print(colored("\n👋 Interrupted. Exiting RAG assistant.\n", "cyan"))
             break
         except Exception as e:
             print(colored(f"❌ An error occurred: {e}\n", "red"))

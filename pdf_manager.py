@@ -29,11 +29,10 @@ def update_ingestion_index(index):
 
 def get_all_pdf_paths():
     """
-    Scans the docs/ folder and returns a list of full paths to PDF files.
+    Scans the /docs folder and returns a list of full paths to PDF files.
     Ignores any non-PDF files.
     """
     if not os.path.exists(PDF_FOLDER):
-        print(f"📁 Creating {PDF_FOLDER}/ directory for your PDF files")
         os.makedirs(PDF_FOLDER)
     return [
         os.path.join(PDF_FOLDER, f)
@@ -63,21 +62,18 @@ def process_new_pdfs(embed_func, add_func):
     new_pdfs = get_new_pdfs_to_process()
 
     if not new_pdfs:
-        print("📁 No new PDFs found. Your document collection is up to date!")
-        print(f"   Add PDF files to the '{PDF_FOLDER}/' directory to expand your knowledge base.")
+        print("📁 No new PDFs found. You're up to date!")
         return
 
     for pdf_path in new_pdfs:
         print(f"📄 Processing: {pdf_path}")
         chunks = load_pdf_chunks(pdf_path)
         if not chunks:
-            print(f"⚠️  No readable text found in {pdf_path}. Skipping.")
-            print("   Make sure the PDF contains text (not just images)")
+            print(f"⚠️  No text found in {pdf_path}. Skipping.")
             continue
         embeddings = [embed_func(chunk["text"]) for chunk in chunks]
         ids = add_func(chunks, embeddings)
         index[pdf_path] = ids
-        print(f"✅ Successfully processed {len(chunks)} text chunks from {pdf_path}")
+        print(f"✅ Added {len(chunks)} chunks from {pdf_path}")
 
     update_ingestion_index(index)
-    print(f"📊 Document index updated. Total files processed: {len(index)}")

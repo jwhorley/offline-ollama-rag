@@ -2,68 +2,63 @@
 
 ![Ollama title slide](slide_images/a.png)
 
+
 This is a fully local Retrieval-Augmented Generation (RAG) system using:
 
-- **Ollama** (`llama3.1:latest` and `nomic-embed-text`) - https://github.com/ollama/ollama
-- **ChromaDB** for vector storage - https://github.com/chroma-core/chroma
-- **PyMuPDF** (`fitz`) for PDF parsing
+- Ollama (`llama3.1:latest` and `nomic-embed-text`) https://github.com/ollama/ollama
+- ChromaDB for vector storage https://github.com/chroma-core/chroma
+- PyMuPDF (`fitz`) for PDF parsing
 - A terminal-based chat interface
 
 ## 🔧 Setup
 
+> --- NOTE: While working in our lab - both steps 1 and 2 below have alredy been done for you. ---
+> --- You should start with setup step #3 while running this in the UTCS Lab.
+
 ### 1. Install Dependencies
 
-Create a virtual environment and install the required packages:
+Use the following in your Conda environment:
 
 ```bash
-# Create virtual environment
-python -m venv venv
+pip install pymupdf chromadb tqdm termcolor langchain scikit-learn
+```
 
-# Activate virtual environment
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
+> Important Note: w/in the classroom lab environment during camp, this has already been done for you.
+> Don't install them to your local user as you'll run into permissions issues w/in the lab setup. 
+> To access this cona environment run the `source /lusr ___________` command provided to you in class .
 
-# Install dependencies
+> If you're not in lab, and trying this on your own, you will need the dependencies listed above. Please refer
+> the the `requirements.txt` file for the full list.
+```bash
 pip install -r requirements.txt
 ```
 
 ### 2. Install Ollama
 
-Choose your platform:
-
-**Ubuntu/Debian:**
+- **Ubuntu**:
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
 ```
 
-**macOS:**
+- **macOS**:
 ```bash
 brew install ollama
 ```
-
-**Windows:**
+- **Windows**:
 Download from https://ollama.com/download and install.
 
-**Other Linux distributions:**
-See installation instructions at https://ollama.com/download
-
-### 3. Download Required Models
-
-After installing Ollama, pull the required models:
+### 3. Then pull the required models:
 
 ```bash
 ollama pull nomic-embed-text
 ollama pull llama3.1:latest
 ```
 
-**Verify your models:**
+You can check all the model files you have downloaded locall via ollama using: 
 ```bash
 ollama list
 ```
-
-**Remove models if needed:**
+Removing a model file is as easy as: 
 ```bash
 ollama rm [model_name]
 ```
@@ -71,10 +66,10 @@ ollama rm [model_name]
 ## 📂 Project Structure
 
 ```
-offline-ollama-rag/
+rag_local_ollama/
+├── GettingStarted/         # Lab guide we'll walk through in class
 ├── docs/                   # Place your PDFs here
-├── test_and_qa-Scripts/    # Testing and debugging scripts
-├── slide_images/           # Documentation images
+├── test_and_qa-Scripts/    # Extra testing scripts used for build - you won't need these
 ├── ingested.json           # Tracks processed PDFs
 ├── pdf_loader.py           # PDF chunking logic
 ├── embedder.py             # Embedding via Ollama
@@ -83,149 +78,92 @@ offline-ollama-rag/
 ├── chat_loop.py            # Terminal input/output
 ├── pdf_manager.py          # Handles new PDF detection
 ├── rag_pipeline.py         # Main entrypoint
-├── requirements.txt        # Python dependencies
-└── README.md               # This file
 ```
 
-## 🔄 How the Pipeline Works
+### 🪠 How our pipeline works:
 
-### **`pdf_manager.py`**
-🔹 **Purpose**: Handles loading and chunking of PDFs into text blocks for embedding.
+**`pdf_manager`.py**
+🔹 Purpose: Handles loading and chunking of PDFs into text blocks for embedding.
 
-- Reads PDFs from the `docs/` directory using PyMuPDF and splits content into structured, overlapping chunks
-- Tracks processed PDFs using `ingested.json` to avoid reprocessing
-- **Key Function**: `process_new_pdfs(embed_func, add_func)` - the main ingestion entry point
+- Reads PDFs from the docs/ directory using PyMuPDF or similar, and splits their content into structured, overlapping chunks.
+- Tracks which PDFs have already been embedded using ingested.json, ensuring new files are the only ones reprocessed.
+- Critical Function: process_new_pdfs(embed_func, add_func) ties together loading, chunking, embedding, and storage — it is the ingestion entry point.
 
-📍 **Offline Operation**: All PDF processing happens locally with no external dependencies.
+📍 Offline Note: No cloud or web access is needed — all PDF processing happens locally.
 
-### **`embedder.py`**
-🔹 **Purpose**: Converts text chunks and queries into dense numerical vectors.
+**`embedder.py`**
+🔹 Purpose: Converts text chunks and queries into dense numerical vectors.
 
-- Uses Ollama's local `nomic-embed-text` model to generate 768-dimensional embeddings
-- Supports both single text embedding and batch processing
-- **Key Functions**: `embed_text()` for queries, batch processing for ingestion
+- Uses Ollama's locally running nomic-embed-text model to generate 768-dimensional embeddings.
+- Implements both embed_text(text: str) and embed_text_batch(texts: List[str]) to handle single or bulk embedding.
+- Critical Function: embed_text_batch() is used during ingestion; embed_text() is used during query time.
 
-📍 **Offline Operation**: Runs entirely through your local Ollama instance.
+📍 Offline Note: Runs entirely on your local machine via Ollama's local embedding model — _no API calls or internet required_.
 
-### **`retriever.py`**
-🔹 **Purpose**: Stores and retrieves document chunks based on similarity to user queries.
+**`retriever.py`**
+🔹 Purpose: Stores and retrieves document chunks based on similarity to user queries.
 
-- Maintains a persistent ChromaDB collection in the local `chroma_db/` folder
-- Provides semantic search and reranking based on cosine similarity
-- **Key Functions**: `add_chunks()` for storage, `search_similar_chunks()` for retrieval
+- Initializes a persistent ChromaDB collection in a local folder (e.g., chroma_db/), which stores both documents and embeddings.
+- Provides retrieval (search_similar_chunks) and reranking (rerank_results) based on cosine similarity with sentence_transformers.util.cos_sim
+- Critical Function: add_chunks() saves documents and their embeddings; search_similar_chunks() is the heart of offline semantic search.
 
-📍 **Offline Operation**: ChromaDB operates locally with persistent storage.
+📍 Offline Note: ChromaDB operates locally and persistently without a server — all retrieval is vector-based and offline.
 
-### **`ollama_runner.py`**
-🔹 **Purpose**: Generates natural language responses using retrieved context.
+**`ollama_runner.py`**
+🔹 Purpose: Sends the retrieved document and user question to a local LLM to generate a natural language response.
 
-- Communicates with local Ollama instance running `llama3.1:latest`
-- Formats context and questions into effective prompts
-- **Key Function**: `query_llm(question, context)` - generates final answers
+- Uses subprocess to call ollama run with a specified model like openthinker:7b or llama3, passing the prompt directly.
+- Formats the context and question into a single prompt before sending it to the model.
+- Critical Function: query_llm(question, context) — this is what generates your final answer.
 
-📍 **Offline Operation**: Uses your local LLM through Ollama's API.
+📍 Offline Note: The LLM runs 100% locally via the Ollama runtime — _no internet, no API tokens_.
 
-### **`chat_loop.py`**
-🔹 **Purpose**: Provides the interactive terminal interface.
+**`chat_loop.py`**
+🔹 Purpose: Handles the interactive user interface in the terminal.
 
-- Handles user input and orchestrates the RAG pipeline
-- Displays source information and generated responses
-- **Key Function**: `chat_loop()` - the main interactive loop
+- Prompts the user for questions, embeds the query, retrieves relevant documents, and reranks them for relevance.
+- Displays the source document info, a relevant excerpt, and a generated LLM response.
+- Critical Flow: chat_loop() is the main interactive REPL loop — calling all components in sequence: embed_text, search_similar_chunks, rerank_results, query_llm.
 
-📍 **Offline Operation**: Terminal-based interface with no external connections.
+📍 Offline Note: Runs in the terminal with no need for web UI or servers — user asks, local stack answers
 
-### **`rag_pipeline.py`**
-🔹 **Purpose**: Main orchestrator that ties everything together.
+**`rag_pipeline.py`**
+🔹 Purpose: Orchestrates the full pipeline: ingestion + REPL loop.
 
-- Processes new PDFs before starting the chat interface
-- Single entry point for the entire system
-- **Key Flow**: Ingestion → Chat → Complete RAG cycle
+- Runs process_new_pdfs() to ingest any new PDFs and embed them before launching the chat loop.
+- Acts as your single-file entry point (python rag_pipeline.py) for both setup and use.
+- Critical Sequence: ingestion -> chat → the full RAG cycle.
 
-📍 **Offline Operation**: Coordinates all local components.
+📍 Offline Note: No services are called — it checks folders, updates the vector store, and launches the chat — all from your machine.
 
-## 🚀 Usage
 
-### Quick Start
+#### Summary of Offline RAG Workflow
+- What makes it "offline"?
+    - Embedding is handled by nomic-embed-text via Ollama (local model).
+    - Document storage & search are powered by local persistent ChromaDB (vector DB).
+    - Answer generation is done by a locally run LLM like llama3.1, using no external API.
 
-1. **Place PDFs** in the `docs/` directory
-2. **Run the system**:
-   ```bash
-   python rag_pipeline.py
-   ```
-3. **Ask questions** in the terminal
-4. **Type `exit`** to quit
+**You've created a fully self-contained question-answering system that doesn't require internet.** It can be
+updated to support multiple PDFs over time. For adding effective parsiing of other structured and unstructed
+data lik images and tables, I reccomend using a different parsing (`llamaparse`). They currently offer a free tier, 
+but for unrestricted use of LlamaParse, it does require a credit card: https://www.llamaindex.ai/llamaparse
 
-### Adding More Documents
+## 🚀 Run It
 
-The system supports multiple PDFs and incremental updates:
-
-- Drop new PDFs into the `docs/` folder
-- Run `python rag_pipeline.py` again
-- Only new documents will be processed (tracked via `ingested.json`)
-- Existing embeddings are preserved for efficiency
-
-## ❓ Example Usage
-
-```
-📚 Local RAG Assistant powered by Ollama
-Type your question below. Type 'exit' to quit.
-
-> What is the main topic of the document?
-📄 Based on page 1 of docs/example.pdf
-
-[Retrieved text chunk appears here]
-
-🤖 Generating response from LLM...
-[AI-generated response based on the document]
-
-> exit
-👋 Goodbye! Thanks for using the RAG assistant.
+```bash
+python rag_pipeline.py
 ```
 
-## 🛠️ Troubleshooting
+Place any PDFs in the `docs/` directory. They'll be automatically processed and embedded.
+This RAG is updatable and supports multiple PDF's. 
+- You can drop as many PDFs as you want into the docs/ folder.
+- The `pdf_manager.py` script will only process the new ones by using `ingested.json` to remember what's been done already.
+- This ensure efficient use of embedding resources on your machine and only embedding new PDF's.
 
-### Common Issues
+## ❓ Ask Questions
 
-**Ollama not responding:**
-- Ensure Ollama is running: `ollama serve`
-- Check if models are downloaded: `ollama list`
-
-**No documents found:**
-- Verify PDFs are in the `docs/` folder
-- Check that PDFs contain readable text (not just images)
-
-**Embedding dimension errors:**
-- Delete `chroma_db/` folder and restart to rebuild the database
-- Ensure you're using the correct embedding model
-
-**Python dependencies:**
-- Make sure your virtual environment is activated
-- Reinstall requirements: `pip install -r requirements.txt`
-
-## 🎯 Educational Goals
-
-This project demonstrates:
-
-- **Local AI deployment** without cloud dependencies
-- **Vector database operations** with ChromaDB
-- **Retrieval-Augmented Generation** concepts
-- **Document processing** and chunking strategies
-- **Embedding-based semantic search**
-- **LLM integration** through Ollama
-
-## 🔮 Future Enhancements
-
-Potential improvements for advanced users:
-
-- Support for additional document formats (CSV, DOCX, etc.)
-- Web-based interface
-- Cloud storage integration
-- Multi-modal document processing
-- Advanced chunking strategies
-- Query expansion and refinement
+Ask a question in the terminal. Type `exit` or `bye` to quit.
 
 ---
 
-**Platform Compatibility**: This project works on Windows, macOS, and Linux systems.
-
-**Hardware Requirements**: Recommended 8GB+ RAM for optimal performance with local LLMs.
+This project is designed for use in Ubuntu, but works equally on macOS and Windows.

@@ -1,9 +1,1 @@
 # Place your PDF files in this directory
-
-Add your PDF documents here to build your knowledge base.
-The system will automatically process any PDF files you add to this folder.
-
-Supported formats:
-- PDF files with readable text content
-- Multiple PDFs are supported
-- Files are tracked automatically to avoid reprocessing

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Formats prompt and sends it to `llama3.1:latest` using Ollama
+# Formats prompt and sends it to `openthinker:7b` using Ollama
 # ollama_runner.py
 
 import subprocess
@@ -10,11 +10,7 @@ from termcolor import colored
 
 def query_llm(prompt, context):
     """
-    Generates a response using Ollama's llama3.1:latest model.
-    
-    Prerequisites:
-    - Ollama must be installed and running
-    - The 'llama3.1:latest' model must be downloaded
+    Uses Ollama to run the LLM and return a response.
 
     Args:
         prompt (str): User question.
@@ -41,9 +37,6 @@ def query_llm(prompt, context):
         )
         return result.stdout
     except subprocess.CalledProcessError as e:
-        print(colored("❌ Error running Ollama:", "red"))
-        print(colored("   Make sure Ollama is installed and the model is available:", "yellow"))
-        print(colored("   ollama pull llama3.1:latest", "yellow"))
-        if e.stderr:
-            print(colored(f"   Error details: {e.stderr}", "red"))
-        return "⚠️ Unable to get a response from the local model. Check Ollama installation and model availability."
+        print(colored("❌ Error running Ollama subprocess:", "red"))
+        print(colored(e.stderr, "red"))
+        return "⚠️ Unable to get a response from the local model."
