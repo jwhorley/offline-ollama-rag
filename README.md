@@ -161,4 +161,4 @@ Ask a question in the terminal. Type `exit` or `bye` to quit.
 
 ---
 
-This project is designed for use in Ubuntu, but works equally on macOS and Windows.
+This project is designed for use in for the Austin AI Alliance Summer Developer training
